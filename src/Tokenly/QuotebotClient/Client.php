@@ -12,12 +12,28 @@ use Tokenly\QuotebotClient\Contracts\CacheStore;
 */
 class Client
 {
+
+    const SATOSHI = 100000000;
     
     function __construct($quotebot_url, $api_token, CacheStore $cache_store)
     {
         $this->quotebot_url = $quotebot_url;
         $this->api_token    = $api_token;
         $this->cache_store  = $cache_store;
+    }
+
+    public function getCurrencyValue($source, array $pair, $quote_type='last', $fiat_source='bitcoinAverage', array $fiat_pair=['USD','BTC'], $fiat_quote_type='last') {
+        $crypto_quote = $this->getQuote($source, $pair);
+        $fiat_quote = $this->getQuote($fiat_source, $fiat_pair);
+
+        $crypto_value = $crypto_quote[$quote_type];
+        $fiat_value = $fiat_quote[$fiat_quote_type];
+
+        if ($crypto_quote['inSatoshis']) {
+            $crypto_value = $crypto_value / self::SATOSHI;
+        }
+
+        return $crypto_value * $fiat_value;
     }
 
     public function getQuote($source, array $pair) {
