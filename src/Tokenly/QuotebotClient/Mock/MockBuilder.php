@@ -60,7 +60,25 @@ class MockBuilder
 
 
             $rate_key = $source.'.'.$pair_string;
-            if (!isset($this->mock_rates_map[$rate_key])) { throw new Exception("No sample method for $source $pair_string", 1); }
+            if (!isset($this->mock_rates_map[$rate_key])) { throw new Exception("No mock rates defined for $source $pair_string", 1); }
+
+            return $this->mock_rates_map[$rate_key];
+        }));
+
+        // override the loadQuote method
+        $quotebot_client_mock->method('loadQuote')->will($test_case->returnCallback(function($source, $pair) use ($quotebot_recorder) {
+            $pair_string = $pair[0].':'.$pair[1];
+
+            // store the method for test verification
+            $quotebot_recorder->calls[] = [
+                'method' => 'loadQuote',
+                'source' => $source,
+                'pair'   => $pair_string,
+            ];
+
+
+            $rate_key = $source.'.'.$pair_string;
+            if (!isset($this->mock_rates_map[$rate_key])) { throw new Exception("No mock rates defined for $source $pair_string", 1); }
 
             return $this->mock_rates_map[$rate_key];
         }));
