@@ -26,7 +26,7 @@ class MockBuilder
 
     public function setMockRates($rate_entries) {
         foreach($this->makeRatesMap($rate_entries) as $rate_key => $new_rate_entry) {
-            $this->mock_rates_map[$rate_key] = array_merge($this->mock_rates_map[$rate_key], $new_rate_entry);
+            $this->mock_rates_map[$rate_key] = array_merge(isset($this->mock_rates_map[$rate_key]) ? $this->mock_rates_map[$rate_key] : [], $new_rate_entry);
         }
         return $this->mock_rates_map;
     }
