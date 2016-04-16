@@ -73,13 +73,15 @@ class Client
         return $quote;
     }
 
+
     protected function getQuoteDataFromAPI() {
         $api_path = '/api/v1/quote/all';
 
-        $client = new GuzzleClient(['base_url' => $this->quotebot_url,]);
+        $client = new GuzzleClient();
 
         $data = ['apitoken' => $this->api_token];
-        $request = $client->createRequest('GET', $api_path, ['query' => $data]);
+        $request = new \GuzzleHttp\Psr7\Request('GET', $this->quotebot_url.$api_path);
+        $request = \GuzzleHttp\Psr7\modify_request($request, ['query' => http_build_query($data, null, '&', PHP_QUERY_RFC3986)]);
 
         // send request
         try {
@@ -89,7 +91,7 @@ class Client
                 // interpret the response and error message
                 $code = $response->getStatusCode();
                 try {
-                    $json = $response->json();
+                    $json = json_decode($response->getBody(), true);
                 } catch (Exception $parse_json_exception) {
                     // could not parse json
                     $json = null;
@@ -103,7 +105,13 @@ class Client
             throw $e;
         }
 
-        $json = $response->json();
+        $code = $response->getStatusCode();
+        if ($code == 204) {
+            // empty content
+            return [];
+        }
+
+        $json = json_decode($response->getBody(), true);
         if (!is_array($json)) { throw new Exception("Unexpected response", 1); }
 
         return $json;
