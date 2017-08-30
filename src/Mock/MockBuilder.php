@@ -1,5 +1,8 @@
 <?php
 
+// this is deprecated
+//   Use MockeryBuilder instead
+
 namespace Tokenly\QuotebotClient\Mock;
 
 use Exception;

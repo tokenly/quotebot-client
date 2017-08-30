@@ -6,6 +6,7 @@ use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use Tokenly\QuotebotClient\Contracts\CacheStore;
+use Tokenly\QuotebotClient\Exceptions\ExpiredQuoteException;
 
 /**
 * Quotebot Client
@@ -14,6 +15,8 @@ class Client
 {
 
     const SATOSHI = 100000000;
+
+    protected $_now = null;
     
     function __construct($quotebot_url, $api_token, CacheStore $cache_store)
     {
@@ -22,18 +25,55 @@ class Client
         $this->cache_store  = $cache_store;
     }
 
-    public function getCurrencyValue($source, array $pair, $quote_type='last', $fiat_source='bitcoinAverage', array $fiat_pair=['USD','BTC'], $fiat_quote_type='last') {
-        $crypto_quote = $this->getQuote($source, $pair);
-        $fiat_quote = $this->getQuote($fiat_source, $fiat_pair);
+    /**
+     * Converts a currency to a fiat value by going to BTC and then to fiat
+     * @param  string     $source          The source for the currency quote (poloniex)
+     * @param  array      $token           A token name like 'MYTOKEN'
+     * @param  array|null $fiat_sources    An array of BTC quote sources in order. defaults to ['bitcoinAverage', 'bitstamp']
+     * @param  array|null $fiat_pair       A fiat to BTC quote pair. defaults to ['USD','BTC']
+     * @return float      A fiat amount
+     */
+    public function getTokenValue($source, $token, array $fiat_sources=null, array $fiat_pair=null) {
+        $crypto_quote = $this->getQuote($source, ['BTC', $token]);
 
-        $crypto_value = $crypto_quote[$quote_type];
-        $fiat_value = $fiat_quote[$fiat_quote_type];
+        if ($fiat_pair === null) {
+            $fiat_pair = ['USD','BTC'];
+        }
+        $fiat_value = $this->getCurrentBTCQuoteWithFallback($fiat_sources, $fiat_pair);
+
+        $crypto_value = $crypto_quote['last'];
 
         if ($crypto_quote['inSatoshis']) {
             $crypto_value = $crypto_value / self::SATOSHI;
         }
 
         return $crypto_value * $fiat_value;
+    }
+
+    /**
+     * gets a current price quote, 
+     * @param  array   $sources An array of BTC quote sources in order. defaults to ['bitcoinAverage', 'bitstamp']
+     * @param  array   $quote_pair A fiat to BTC quote pair. defaults to ['USD','BTC']
+     * @param  integer $stale_seconds The amount of time to consider a quote as expired. defaults to 3600 seconds (1 hour)
+     * @throws ExpiredQuoteException if all sources are expired
+     * @return float   A fiat amount
+     */
+    public function getCurrentBTCQuoteWithFallback($sources=null, $quote_pair=null, $stale_seconds=null) {
+        if ($sources === null) { $sources = ['bitcoinAverage', 'bitstamp']; }
+        if ($stale_seconds === null) { $stale_seconds = 3600; }
+
+        if (!is_array($sources) AND $sources) {
+            $sources = [$sources];
+        }
+
+        foreach($sources as $source) {
+            $quote = $this->getQuote($source, ['USD','BTC']);
+            if ($this->quoteIsFresh($quote, $stale_seconds)) {
+                return $quote['last'];
+            }
+        }
+
+        throw new ExpiredQuoteException("No sources were fresh.");
     }
 
     public function getQuote($source, array $pair) {
@@ -73,6 +113,15 @@ class Client
         return $quote;
     }
 
+    // -----------------------------
+    // Time handling 
+    //   only used for testing
+
+    public function _setNow(int $now) {
+        $this->_now = $now;
+    }
+
+    // ------------------------------------------------------------------------
 
     protected function getQuoteDataFromAPI() {
         $api_path = '/api/v1/quote/all';
@@ -116,5 +165,21 @@ class Client
 
         return $json;
     }
+
+    protected function quoteIsFresh($quote, $stale_seconds) {
+        $quote_ts = isset($quote['time']) ? strtotime($quote['time']) : 0;
+        $now_ts = $this->getNow();
+
+        if ($now_ts - $quote_ts >= $stale_seconds) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function getNow() {
+        return isset($this->_now) ? $this->_now : time();
+    }
+
 
 }

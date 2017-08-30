@@ -15,9 +15,10 @@
         "guzzlehttp/guzzle": "~6.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4"
+        "mockery/mockery": "dev-master",
+        "phpunit/phpunit": "^5"
     },
     "autoload": {
-        "psr-0": {"Tokenly\\QuotebotClient": "src"}
+        "psr-4": {"Tokenly\\QuotebotClient\\": "src/"}
     }
 }
