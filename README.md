@@ -26,7 +26,7 @@ Tokenly\QuotebotClient\ServiceProvider\QuotebotServiceProvider::class,
 ### Set the environment variables
 
 ```
-QUOTEBOT_API_TOKEN=http://quotebot.tokenly.co
+QUOTEBOT_CONNECTION_URL=https://quotebot.tokenly.com
 QUOTEBOT_API_TOKEN=my-api-token
 ```
 
