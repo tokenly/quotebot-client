@@ -113,6 +113,10 @@ class Client
         return $quote;
     }
 
+    public function loadRawQuotesData() {
+        return $this->getQuoteDataFromAPI();
+    }
+
     // -----------------------------
     // Time handling 
     //   only used for testing
