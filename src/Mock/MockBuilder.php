@@ -131,7 +131,7 @@ class MockBuilder
             ],
             [
                 'source'     => 'poloniex',
-                'pair'       => 'BTC:LTBC',
+                'pair'       => 'BTC:MYTOKEN',
                 'inSatoshis' => true,
                 'bid'        => 95,
                 'last'       => 100,

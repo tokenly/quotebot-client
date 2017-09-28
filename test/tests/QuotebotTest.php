@@ -17,10 +17,10 @@ class QuotebotTest extends PHPUnit_Framework_TestCase
 
         PHPUnit::assertEquals(4000, $quotebot_client->getQuote('bitcoinAverage', ['USD','BTC'])['last']);
         PHPUnit::assertEquals(4000, $quotebot_client->getQuote('bitcoinAverage', ['USD','BTC'])['last']);
-        PHPUnit::assertEquals(4000, $quotebot_client->getCurrentBTCQuoteWithFallback('bitcoinAverage', ['USD','BTC']));
+        PHPUnit::assertEquals(4000, $quotebot_client->getCurrentBTCQuoteWithFallback('USD', 'bitcoinAverage'));
 
         PHPUnit::assertEquals(4001, $quotebot_client->getQuote('bitstamp', ['USD','BTC'])['last']);
-        PHPUnit::assertEquals(4001, $quotebot_client->getCurrentBTCQuoteWithFallback('bitstamp'));
+        PHPUnit::assertEquals(4001, $quotebot_client->getCurrentBTCQuoteWithFallback('USD', 'bitstamp'));
     }
 
     public function testGetRatesExpired() {

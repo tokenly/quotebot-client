@@ -37,9 +37,9 @@ class Client
         $crypto_quote = $this->getQuote($source, ['BTC', $token]);
 
         if ($fiat_pair === null) {
-            $fiat_pair = ['USD','BTC'];
+            $fiat_pair = 'USD';
         }
-        $fiat_value = $this->getCurrentBTCQuoteWithFallback($fiat_sources, $fiat_pair);
+        $fiat_value = $this->getCurrentBTCQuoteWithFallback($fiat_pair, $fiat_sources);
 
         $crypto_value = $crypto_quote['last'];
 
@@ -52,22 +52,24 @@ class Client
 
     /**
      * gets a current price quote, 
+     * @param  array   $fiat A fiat currency to check market price - e.g USD, EUR
      * @param  array   $sources An array of BTC quote sources in order. defaults to ['bitcoinAverage', 'bitstamp']
-     * @param  array   $quote_pair A fiat to BTC quote pair. defaults to ['USD','BTC']
      * @param  integer $stale_seconds The amount of time to consider a quote as expired. defaults to 3600 seconds (1 hour)
      * @throws ExpiredQuoteException if all sources are expired
      * @return float   A fiat amount
      */
-    public function getCurrentBTCQuoteWithFallback($sources=null, $quote_pair=null, $stale_seconds=null) {
+    public function getCurrentBTCQuoteWithFallback($fiat = 'USD', $sources=null, $stale_seconds=null) {
         if ($sources === null) { $sources = ['bitcoinAverage', 'bitstamp']; }
         if ($stale_seconds === null) { $stale_seconds = 3600; }
 
         if (!is_array($sources) AND $sources) {
             $sources = [$sources];
         }
+        
+        $quote_pair = [$fiat, 'BTC'];
 
         foreach($sources as $source) {
-            $quote = $this->getQuote($source, ['USD','BTC']);
+            $quote = $this->getQuote($source, $quote_pair);
             if ($this->quoteIsFresh($quote, $stale_seconds)) {
                 return $quote['last'];
             }
