@@ -36,7 +36,7 @@ class QuotebotServiceProvider extends ServiceProvider
     {
         // simple config
         $config = [
-            'quotebot.connection_url' => env('QUOTEBOT_CONNECTION_URL', 'http://quotebot.tokenly.co'),
+            'quotebot.connection_url' => env('QUOTEBOT_CONNECTION_URL', 'https://quotebot.tokenly.com'),
             'quotebot.api_token'      => env('QUOTEBOT_API_TOKEN'     , null),
         ];
 
